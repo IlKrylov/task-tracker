@@ -1,2 +1,0 @@
-# task-tracker
-Task Tracker
