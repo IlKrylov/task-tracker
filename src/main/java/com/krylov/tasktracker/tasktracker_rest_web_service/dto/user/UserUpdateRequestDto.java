@@ -1,6 +1,6 @@
-package com.krylov.tasktracker.tasktracker_rest_web_service.dto;
+package com.krylov.tasktracker.tasktracker_rest_web_service.dto.user;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.enums.ChangeType;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.enums.ChangeType;
 import lombok.Data;
 
 import java.util.Map;

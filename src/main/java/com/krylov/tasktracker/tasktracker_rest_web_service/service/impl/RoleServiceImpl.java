@@ -1,7 +1,6 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.RoleDto;
-import com.krylov.tasktracker.tasktracker_rest_web_service.entity.ProjectEntity;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.role.RoleDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.RoleEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.UserEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.RoleRepository;

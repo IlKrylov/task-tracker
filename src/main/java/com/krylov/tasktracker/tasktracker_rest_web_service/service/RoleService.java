@@ -1,6 +1,6 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.RoleDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.role.RoleDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.RoleEntity;
 
 import java.util.List;

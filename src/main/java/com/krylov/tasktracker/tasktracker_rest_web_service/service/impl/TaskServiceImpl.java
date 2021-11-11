@@ -1,6 +1,6 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.TaskDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.task.TaskDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.ProjectEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.TaskEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.UserEntity;

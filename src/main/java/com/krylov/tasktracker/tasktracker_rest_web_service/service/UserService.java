@@ -1,8 +1,8 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.UserInfoResponseDto;
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.UserRegistrationRequestDto;
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.UserUpdateRequestDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserInfoResponseDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserRegistrationRequestDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserUpdateRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.UserEntity;
 
 import java.util.List;

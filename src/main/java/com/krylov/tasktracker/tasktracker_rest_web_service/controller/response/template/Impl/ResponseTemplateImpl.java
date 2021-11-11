@@ -1,12 +1,12 @@
-package com.krylov.tasktracker.tasktracker_rest_web_service.controller.response.service.Impl;
+package com.krylov.tasktracker.tasktracker_rest_web_service.controller.response.template.Impl;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.controller.response.service.ResponseHandler;
+import com.krylov.tasktracker.tasktracker_rest_web_service.controller.response.template.ResponseTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ResponseHandlerImpl implements ResponseHandler {
+public class ResponseTemplateImpl implements ResponseTemplate {
 
     @Override
     public ResponseEntity getResponseOk(Object obj) {

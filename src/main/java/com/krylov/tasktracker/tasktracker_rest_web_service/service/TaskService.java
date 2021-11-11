@@ -1,6 +1,6 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.TaskDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.task.TaskDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.TaskEntity;
 
 import java.util.List;
