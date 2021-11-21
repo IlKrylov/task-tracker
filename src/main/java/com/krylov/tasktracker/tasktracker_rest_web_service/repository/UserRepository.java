@@ -15,4 +15,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query("select u from UserEntity u join u.projects p where p.id = :projectId")
     List<UserEntity> findAllByProjectId(@Param("projectId") Long projectId);
+
+    boolean existsByUserName (String userName);
+
+    boolean existsByEmail (String email);
+
 }

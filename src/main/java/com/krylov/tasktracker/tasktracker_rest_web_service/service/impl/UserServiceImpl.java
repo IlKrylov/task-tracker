@@ -2,7 +2,7 @@ package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserInfoResponseDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserRegistrationRequestDto;
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserUpdateRequestDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserLinksUpdateRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.enums.ChangeType;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.*;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityStatus;
@@ -51,8 +51,6 @@ public class UserServiceImpl implements UserService {
         UserEntity result = new UserEntity();
 
         result.setUserName(userInfo.getUserName());
-
-        //TODO: passwordEncoder
         result.setPassword(passwordEncoder.encode(userInfo.getPassword()));
 
         result.setFirsName(userInfo.getFirstName());
@@ -66,7 +64,6 @@ public class UserServiceImpl implements UserService {
         roles.add(roleUser);
         result.setRoles(roles);
 
-        //TODO: dates
         result.setCreated(new Date());
         result.setUpdated(new Date());
 
@@ -76,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<UserEntity> updateLinks(UserUpdateRequestDto updateRequestDto) {
+    public Optional<List<String>> updateLinks(UserLinksUpdateRequestDto updateRequestDto) {
         if (updateRequestDto == null || updateRequestDto.getId() == null) return Optional.empty();
         Long id = updateRequestDto.getId();
 
@@ -84,11 +81,12 @@ public class UserServiceImpl implements UserService {
         if (userEntityOptional.isEmpty()) return Optional.empty();
         UserEntity userEntity = userEntityOptional.get();
 
-        addChanges(EntityType.ROLE, updateRequestDto.getRoleChanges(), userEntity);
-        addChanges(EntityType.PROJECT, updateRequestDto.getProjectChanges(), userEntity);
-        addChanges(EntityType.TASK, updateRequestDto.getTaskChanges(), userEntity);
+        List<String> result = new ArrayList<>();
+        addChanges(EntityType.ROLE, roleRepository, updateRequestDto.getRoleChanges(), userEntity, result);
+        addChanges(EntityType.PROJECT, projectRepository, updateRequestDto.getProjectChanges(), userEntity, result);
+        addChanges(EntityType.TASK, taskRepository, updateRequestDto.getTaskChanges(), userEntity, result);
         userEntity.setUpdated(new Date());
-        return Optional.ofNullable(userEntity);
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -144,6 +142,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public boolean existsByUserName(String userName) {
+        return userRepository.existsByUserName(userName);
+    }
+
+    @Override
+    @Transactional
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    @Transactional
     public Optional<UserEntity> toEntity(UserInfoResponseDto dto) {
         if (dto == null) return Optional.empty();
         UserEntity result = userRepository.findById(dto.getId()).orElse(new UserEntity());
@@ -176,25 +186,12 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    private void addChanges(EntityType entityType, Map<Long, ChangeType> changes, UserEntity result) {
+    private void addChanges(EntityType entityType,
+                            JpaRepository repository,
+                            Map<Long, ChangeType> changes,
+                            UserEntity userEntity,
+                            List<String> changeLog) {
         if (changes == null) return;
-        JpaRepository repository = null;
-
-        switch (entityType){
-            case ROLE:{
-                repository = roleRepository;
-                break;
-            }
-            case PROJECT:{
-                repository = projectRepository;
-                break;
-            }
-            case TASK:{
-                repository = taskRepository;
-                break;
-            }
-        }
-
         for (Map.Entry<Long, ChangeType> changesEntry : changes.entrySet()) {
             Optional<BaseEntity> entityOptional = repository.findById(changesEntry.getKey());
             if (entityOptional.isEmpty()) continue;
@@ -204,18 +201,30 @@ public class UserServiceImpl implements UserService {
 
             switch (entityType){
                 case ROLE:{
-                    if (changeType == ChangeType.ADDED) result.addRole((RoleEntity) entity);
-                    if (changeType == ChangeType.REMOVED) result.removeRole((RoleEntity) entity);
+                    if (changeType == ChangeType.ADD) {
+                        userEntity.addRole((RoleEntity) entity, changeLog);
+                    }
+                    if (changeType == ChangeType.REMOVE) {
+                        userEntity.removeRole((RoleEntity) entity, changeLog);
+                    }
                     break;
                 }
                 case PROJECT:{
-                    if (changeType == ChangeType.ADDED) result.addProject((ProjectEntity) entity);
-                    if (changeType == ChangeType.REMOVED) result.removeProject((ProjectEntity) entity);
+                    if (changeType == ChangeType.ADD) {
+                        userEntity.addProject((ProjectEntity) entity, changeLog);
+                    }
+                    if (changeType == ChangeType.REMOVE) {
+                        userEntity.removeProject((ProjectEntity) entity, changeLog);
+                    }
                     break;
                 }
                 case TASK:{
-                    if (changeType == ChangeType.ADDED) result.addTask((TaskEntity) entity);
-                    if (changeType == ChangeType.REMOVED) result.removeTask((TaskEntity) entity);
+                    if (changeType == ChangeType.ADD) {
+                        userEntity.addTask((TaskEntity) entity, changeLog);
+                    }
+                    if (changeType == ChangeType.REMOVE) {
+                        userEntity.removeTask((TaskEntity) entity, changeLog);
+                    }
                     break;
                 }
             }

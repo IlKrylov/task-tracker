@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
-public class UserUpdateRequestDto {
+public class UserLinksUpdateRequestDto {
 
     private Long id;
 

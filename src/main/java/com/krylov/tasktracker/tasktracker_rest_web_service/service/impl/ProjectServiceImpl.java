@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,6 @@ public class ProjectServiceImpl implements ProjectService {
         if (entityOptional.isEmpty()) return Optional.empty();
 
         ProjectEntity entity = projectRepository.save(entityOptional.get());
-
         return Optional.ofNullable(entity);
     }
 
@@ -78,7 +78,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (projectOptional.isEmpty()) return;
         ProjectEntity project = projectOptional.get();
 
-        project.getUsers().stream().forEach(userEntity -> userEntity.removeProject(project));
+        project.getUsers().stream().forEach(userEntity -> userEntity.removeProject(project, new ArrayList<>()));
         project.getTasks().stream().forEach(taskEntity -> taskRepository.deleteById(taskEntity.getId()));
 
         projectRepository.deleteById(id);

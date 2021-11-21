@@ -5,7 +5,8 @@ import com.krylov.tasktracker.tasktracker_rest_web_service.dto.project.ProjectDt
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.role.RoleDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.task.TaskDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserInfoResponseDto;
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserUpdateRequestDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserLinksUpdateRequestDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.enums.ChangeType;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.ProjectEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.RoleEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.TaskEntity;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,13 +111,12 @@ public class AdminRestController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity updateUserLinks(@RequestBody UserUpdateRequestDto updateRequestDto) {
-        Optional<UserEntity> userEntitiesOptional = userService.updateLinks(updateRequestDto);
-        if (userEntitiesOptional.isEmpty()) {
+    public ResponseEntity updateUserLinks(@RequestBody UserLinksUpdateRequestDto userLinksUpdateRequestDto) {
+        Optional<List<String>> optionalChangeLog = userService.updateLinks(userLinksUpdateRequestDto);
+        if (optionalChangeLog.isEmpty()) {
             return responseTemplate.getResponseBadRequest(BAD_REQUEST);
         }
-        UserInfoResponseDto result = userService.toDto(userEntitiesOptional.get());
-        return responseTemplate.getResponseOk(result);
+        return responseTemplate.getResponseOk(optionalChangeLog.get());
     }
 
     @DeleteMapping("/users/{id}")
@@ -163,13 +164,17 @@ public class AdminRestController {
 
     @PostMapping("/projects")
     public ResponseEntity createOrUpdateProject(@RequestBody ProjectDto projectDto) {
-        Optional<ProjectEntity> projectEntityOptional = projectService.saveOrUpdate(projectDto);
-        if (projectEntityOptional.isEmpty()) return responseTemplate.getResponseBadRequest(BAD_REQUEST);
-        ProjectEntity entity = projectEntityOptional.get();
-        ProjectDto result = projectService.toDto(entity);
+        try{
+            Optional<ProjectEntity> projectEntityOptional = projectService.saveOrUpdate(projectDto);
+            if (projectEntityOptional.isEmpty()) return responseTemplate.getResponseBadRequest(BAD_REQUEST);
+            ProjectEntity entity = projectEntityOptional.get();
+            ProjectDto result = projectService.toDto(entity);
 
-        return responseTemplate.getResponseOk(result);
+            return responseTemplate.getResponseOk(result);
 
+        } catch (Exception e){
+            return responseTemplate.getResponseBadRequest("DataBase constraint exception");
+        }
     }
 
     @DeleteMapping("/projects/{id}")
@@ -242,13 +247,17 @@ public class AdminRestController {
 
     @PostMapping("/tasks")
     public ResponseEntity createOrUpdateTask(@RequestBody TaskDto taskDto) {
-        Optional<TaskEntity> taskEntityOptional = taskService.saveOrUpdate(taskDto);
-        if (taskEntityOptional.isEmpty()) return responseTemplate.getResponseBadRequest(BAD_REQUEST);
-        TaskEntity entity = taskEntityOptional.get();
-        TaskDto result = taskService.toDto(entity);
+        try{
+            Optional<TaskEntity> taskEntityOptional = taskService.saveOrUpdate(taskDto);
+            if (taskEntityOptional.isEmpty()) return responseTemplate.getResponseBadRequest(BAD_REQUEST);
+            TaskEntity entity = taskEntityOptional.get();
+            TaskDto result = taskService.toDto(entity);
 
-        return responseTemplate.getResponseOk(result);
+            return responseTemplate.getResponseOk(result);
 
+        } catch (Exception e){
+            return responseTemplate.getResponseBadRequest("DataBase constraint exception");
+        }
     }
 
     @DeleteMapping("/tasks/{id}")
