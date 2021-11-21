@@ -151,6 +151,7 @@ public class TaskServiceImpl implements TaskService {
             result.setUserId(entity.getUser().getId());
             result.setUserName(entity.getUser().getUserName());
         }
+        result.setEntityStatus(entity.getStatus());
 
         return result;
     }
