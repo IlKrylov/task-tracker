@@ -8,12 +8,12 @@ import java.util.Optional;
 
 public interface TaskService extends BaseEntityService<TaskEntity, TaskDto> {
 
-    Optional<TaskEntity> saveOrUpdate(TaskDto taskInfo);
+    TaskEntity saveOrUpdate(TaskDto taskInfo);
 
-    Optional<List<TaskEntity>> findAllProjectTasks(Long projectId);
+    List<TaskEntity> findAllProjectTasks(Long projectId);
 
-    Optional<List<TaskEntity>> findAllUserTasks(Long userId);
+    List<TaskEntity> findAllUserTasks(Long userId);
 
-    Optional<List<TaskEntity>> findAllProjectUserTasks(Long projectId, Long userId);
+    List<TaskEntity> findAllProjectUserTasks(Long projectId, Long userId);
 
 }

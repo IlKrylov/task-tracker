@@ -5,6 +5,10 @@ import com.krylov.tasktracker.tasktracker_rest_web_service.entity.ProjectEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.TaskEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.UserEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityStatus;
+import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityType;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.DataBaseUpdateException;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.InvalidDtoException;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.NoSuchElementExceptionFactory;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.ProjectRepository;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.TaskRepository;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.UserRepository;
@@ -24,26 +28,30 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final NoSuchElementExceptionFactory noSuchElementExceptionFactory;
 
 
     @Autowired
     public TaskServiceImpl(TaskRepository taskRepository,
                            ProjectRepository projectRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           NoSuchElementExceptionFactory noSuchElementExceptionFactory) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.noSuchElementExceptionFactory = noSuchElementExceptionFactory;
     }
 
     @Override
     @Transactional
-    public Optional<TaskEntity> saveOrUpdate(TaskDto dto) {
-        Optional<TaskEntity> entityOptional = toEntity(dto);
-        if (entityOptional.isEmpty()) return Optional.empty();
-
-        TaskEntity entity = taskRepository.save(entityOptional.get());
-
-        return Optional.ofNullable(entity);
+    public TaskEntity saveOrUpdate(TaskDto dto) {
+        TaskEntity taskEntity = toEntity(dto);
+        try{
+            TaskEntity result = taskRepository.save(taskEntity);
+            return result;
+        } catch (Exception e){
+            throw new DataBaseUpdateException("Unable to save Task with name='" + taskEntity.getName() + "'");
+        }
     }
 
     @Override
@@ -55,47 +63,65 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public Optional<TaskEntity> findById(Long id) {
-        Optional<TaskEntity> result = taskRepository.findById(id);
+    public TaskEntity findById(Long id) {
+        TaskEntity result = taskRepository.findById(id)
+                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", id));
         return result;
     }
 
     @Override
     @Transactional
-    public Optional<TaskEntity> findByName(String name) {
-        return Optional.ofNullable(taskRepository.findByName(name));
+    public TaskEntity findByName(String name) {
+        TaskEntity result = taskRepository.findByName(name);
+        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "name", name);
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<List<TaskEntity>> findAllProjectTasks(Long projectId) {
-        if (!projectRepository.existsById(projectId)) return Optional.empty();
-        List<TaskEntity> result = taskRepository.findAllByProject(projectId);
-        return Optional.ofNullable(result);
+    public List<TaskEntity> findAllProjectTasks(Long projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", projectId);
+        }
+        List<TaskEntity> result = taskRepository.findAllByProjectId(projectId);
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<List<TaskEntity>> findAllUserTasks(Long userId) {
-        if (!userRepository.existsById(userId)) return Optional.empty();
-        List<TaskEntity> result = taskRepository.findAllByUser(userId);
-        return Optional.ofNullable(result);
+    public List<TaskEntity> findAllUserTasks(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", userId);
+        }
+        List<TaskEntity> result = taskRepository.findAllByUserId(userId);
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<List<TaskEntity>> findAllProjectUserTasks(Long projectId, Long userId) {
-        if (!projectRepository.existsById(projectId)) return Optional.empty();
-        if (!userRepository.existsById(userId)) return Optional.empty();
+    public List<TaskEntity> findAllProjectUserTasks(Long projectId, Long userId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", projectId);
+        }
+        if (!userRepository.existsById(userId)) {
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", userId);
+        }
 
-        List<TaskEntity> result = taskRepository.findAllByProjectAndUser(projectId, userId);
-        return Optional.ofNullable(result);
+        List<TaskEntity> result = taskRepository.findAllByProjectIdAndUserId(projectId, userId);
+        return result;
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
-        taskRepository.deleteById(id);
+        if (!taskRepository.existsById(id)) {
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", id);
+        }
+        try{
+            taskRepository.deleteById(id);
+        } catch (Exception e){
+            throw new DataBaseUpdateException("Unable to delete Task with id='" + id + "'");
+        }
     }
 
     @Override
@@ -105,37 +131,41 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Optional<TaskEntity> toEntity(TaskDto dto) {
-        if (dto == null || dto.getProjectId() == null) return Optional.empty();
-        Optional<ProjectEntity> projectOptional = projectRepository.findById(dto.getProjectId());
-        if (projectOptional.isEmpty()) return Optional.empty();
+    @Transactional
+    public TaskEntity toEntity(TaskDto dto) {
+        if (dto == null) throw new InvalidDtoException("DTO is empty");
+        if (dto.getProjectId() == null ||
+            dto.getName() == null ||
+            dto.getDescription() == null ||
+            dto.getEntityStatus() == null) throw new InvalidDtoException("Invalid DTO data");
 
-        Long id = dto.getId();
+        ProjectEntity projectEntity = projectRepository.findById(dto.getProjectId())
+                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", dto.getProjectId()));
 
         TaskEntity result = null;
-        if (id == null) {
+        if (dto.getId() == null) {
             result = new TaskEntity();
             result.setId(0l);
             result.setCreated(new Date());
         } else {
             Optional<TaskEntity> taskEntityOptional = taskRepository.findById(dto.getId());
-            if (taskEntityOptional.isEmpty()) return Optional.empty();
-            result = taskEntityOptional.get();
+            result = taskEntityOptional
+                    .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", dto.getId()));
         }
         result.setName(dto.getName());
         result.setDescription(dto.getDescription());
-        result.setProject(projectOptional.get());
+        result.setProject(projectEntity);
 
         if (dto.getUserId() != null){
-            Optional<UserEntity> userOptional = userRepository.findById(dto.getUserId());
-            if (userOptional.isEmpty()) return Optional.empty();
-            result.setUser(userOptional.get());
+            UserEntity userEntity = userRepository.findById(dto.getUserId())
+                    .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", dto.getUserId()));
+            result.setUser(userEntity);
         }
 
         result.setStatus(EntityStatus.ACTIVE);
         result.setUpdated(new Date());
 
-        return Optional.of(result);
+        return result;
     }
 
     @Override

@@ -8,8 +8,8 @@ import java.util.Optional;
 
 public interface ProjectService extends BaseEntityService<ProjectEntity, ProjectDto> {
 
-    Optional<ProjectEntity> saveOrUpdate(ProjectDto dto);
+    ProjectEntity saveOrUpdate(ProjectDto dto);
 
-    Optional<List<ProjectEntity>> findAllUserProjects(Long userId);
+    List<ProjectEntity> findAllUserProjects(Long userId);
 
 }

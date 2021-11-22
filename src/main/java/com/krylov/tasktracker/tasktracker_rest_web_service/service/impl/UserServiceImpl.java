@@ -1,12 +1,15 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserInfoResponseDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserInfoDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserRegistrationRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserLinksUpdateRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.enums.ChangeType;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.*;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityStatus;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityType;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.DataBaseUpdateException;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.InvalidDtoException;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.NoSuchElementExceptionFactory;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.ProjectRepository;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.RoleRepository;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.TaskRepository;
@@ -29,64 +32,85 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final TaskRepository taskRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final NoSuchElementExceptionFactory noSuchElementExceptionFactory;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
                            ProjectRepository projectRepository,
                            RoleRepository roleRepository,
                            TaskRepository taskRepository,
-                           BCryptPasswordEncoder passwordEncoder) {
+                           BCryptPasswordEncoder passwordEncoder,
+                           NoSuchElementExceptionFactory noSuchElementExceptionFactory) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.roleRepository = roleRepository;
         this.taskRepository = taskRepository;
         this.passwordEncoder = passwordEncoder;
+        this.noSuchElementExceptionFactory = noSuchElementExceptionFactory;
     }
 
 
     @Override
     @Transactional
-    public Optional<UserEntity> register(UserRegistrationRequestDto userInfo) {
+    public UserEntity register(UserRegistrationRequestDto userRegistrationRequestDto) {
 
-        UserEntity result = new UserEntity();
+        if (userRegistrationRequestDto.getUserName() == null ||
+                userRegistrationRequestDto.getPassword() == null ||
+                userRegistrationRequestDto.getEmail() == null ||
+                userRegistrationRequestDto.getFirstName() == null ||
+                userRegistrationRequestDto.getLastName() == null){
+            throw new InvalidDtoException("Invalid DTO data");
+        }
 
-        result.setUserName(userInfo.getUserName());
-        result.setPassword(passwordEncoder.encode(userInfo.getPassword()));
+        if (userRepository.existsByUserName(userRegistrationRequestDto.getUserName())){
+            throw new DataBaseUpdateException("User with username='"+ userRegistrationRequestDto.getUserName() + "' already exists");
+        }
+        if (userRepository.existsByEmail(userRegistrationRequestDto.getEmail())){
+            throw new DataBaseUpdateException("User with email='"+ userRegistrationRequestDto.getEmail() + "' already exists");
+        }
 
-        result.setFirsName(userInfo.getFirstName());
-        result.setLastName(userInfo.getLastName());
-        result.setEmail(userInfo.getEmail());
+        UserEntity userEntity = new UserEntity();
 
-        result.setStatus(EntityStatus.ACTIVE);
+        userEntity.setUserName(userRegistrationRequestDto.getUserName());
+        userEntity.setPassword(passwordEncoder.encode(userRegistrationRequestDto.getPassword()));
+
+        userEntity.setFirsName(userRegistrationRequestDto.getFirstName());
+        userEntity.setLastName(userRegistrationRequestDto.getLastName());
+        userEntity.setEmail(userRegistrationRequestDto.getEmail());
+
+        userEntity.setStatus(EntityStatus.ACTIVE);
 
         List<RoleEntity> roles = new ArrayList<>();
         RoleEntity roleUser = roleRepository.findRoleUser().orElseThrow(() -> new NoSuchElementException("ROLE_USER is not found id DataBase"));
         roles.add(roleUser);
-        result.setRoles(roles);
+        userEntity.setRoles(roles);
 
-        result.setCreated(new Date());
-        result.setUpdated(new Date());
+        userEntity.setCreated(new Date());
+        userEntity.setUpdated(new Date());
 
-
-        return Optional.ofNullable(userRepository.save(result));
+        try{
+            UserEntity result = userRepository.save(userEntity);
+            return result;
+        } catch (Exception e){
+            throw new DataBaseUpdateException("Unable to save User with username='" + userRegistrationRequestDto.getUserName() + "'");
+        }
     }
 
     @Override
     @Transactional
-    public Optional<List<String>> updateLinks(UserLinksUpdateRequestDto updateRequestDto) {
-        if (updateRequestDto == null || updateRequestDto.getId() == null) return Optional.empty();
-        Long id = updateRequestDto.getId();
+    public List<String> updateLinks(UserLinksUpdateRequestDto updateRequestDto) {
+        if (updateRequestDto == null) throw new InvalidDtoException("DTO is empty");
+        if (updateRequestDto.getId() == null) throw new InvalidDtoException("Invalid user Id");
 
-        Optional<UserEntity> userEntityOptional = userRepository.findById(id);
-        if (userEntityOptional.isEmpty()) return Optional.empty();
-        UserEntity userEntity = userEntityOptional.get();
+        UserEntity userEntity = userRepository.findById(updateRequestDto.getId())
+                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", updateRequestDto.getId()));
 
         List<String> result = new ArrayList<>();
         addChanges(EntityType.ROLE, roleRepository, updateRequestDto.getRoleChanges(), userEntity, result);
         addChanges(EntityType.PROJECT, projectRepository, updateRequestDto.getProjectChanges(), userEntity, result);
         addChanges(EntityType.TASK, taskRepository, updateRequestDto.getTaskChanges(), userEntity, result);
         userEntity.setUpdated(new Date());
-        return Optional.ofNullable(result);
+        return result;
     }
 
     @Override
@@ -98,40 +122,51 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<UserEntity> findById(Long id) {
-        Optional<UserEntity> result = userRepository.findById(id);
+    public UserEntity findById(Long id) {
+        UserEntity result = userRepository.findById(id)
+                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", id));
         return result;
     }
 
     @Override
     @Transactional
-    public Optional<UserEntity> findByName(String userName) {
-        Optional<UserEntity> result = Optional.ofNullable(userRepository.findByUserName(userName));
+    public UserEntity findByName(String userName) {
+        UserEntity result = userRepository.findByUserName(userName);
+        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "name", userName);
         return result;
     }
 
     @Override
     @Transactional
-    public Optional<List<UserEntity>> findAllProjectUsers(Long projectId) {
-        if (!projectRepository.existsById(projectId)) return Optional.empty();
+    public List<UserEntity> findAllProjectUsers(Long projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", projectId);
+        }
         List<UserEntity> result = userRepository.findAllByProjectId(projectId);
-        return Optional.ofNullable(result);
+        return result;
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
-        Optional<UserEntity> userEntityOptional = userRepository.findById(id);
-        if (userEntityOptional.isEmpty()) return;
-        UserEntity userEntity = userEntityOptional.get();
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", id));
 
-        List<ProjectEntity> projectEntities = userEntity.getProjects();
-        projectEntities.stream().forEach(projectEntity -> projectEntity.removeUser(userEntity));
+        if (userEntity.getProjects() != null){
+            List<ProjectEntity> projectEntities = userEntity.getProjects();
+            projectEntities.stream().forEach(projectEntity -> projectEntity.removeUser(userEntity));
+        }
 
-        List<TaskEntity> taskEntities = userEntity.getTasks();
-        taskEntities.forEach(taskEntity -> taskEntity.setUser(null));
+        if (userEntity.getTasks() !=null){
+            List<TaskEntity> taskEntities = userEntity.getTasks();
+            taskEntities.forEach(taskEntity -> taskEntity.setUser(null));
+        }
 
-        userRepository.deleteById(id);
+        try{
+            userRepository.deleteById(id);
+        } catch (Exception e){
+            throw new DataBaseUpdateException("Unable to delete User with id='" + id + "'");
+        }
     }
 
     @Override
@@ -154,21 +189,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<UserEntity> toEntity(UserInfoResponseDto dto) {
-        if (dto == null) return Optional.empty();
-        UserEntity result = userRepository.findById(dto.getId()).orElse(new UserEntity());
+    public UserEntity toEntity(UserInfoDto dto) {
+        if (dto == null) throw new InvalidDtoException("DTO is empty");
 
+        UserEntity result = null;
+        if (dto.getId() == null) {
+            result = new UserEntity();
+            result.setId(0l);
+            result.setCreated(new Date());
+        } else {
+            Optional<UserEntity> userEntityOptional = userRepository.findById(dto.getId());
+            result = userEntityOptional.orElseThrow(
+                    ()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", dto.getId()));
+        }
         result.setUserName(dto.getUserName());
         result.setFirsName(dto.getFirstName());
         result.setLastName(dto.getLastName());
-
         result.setEmail(dto.getEmail());
-        return Optional.of(result);
+
+        return result;
     }
 
     @Override
-    public UserInfoResponseDto toDto(UserEntity entity) {
-        UserInfoResponseDto result = new UserInfoResponseDto();
+    public UserInfoDto toDto(UserEntity entity) {
+        UserInfoDto result = new UserInfoDto();
 
         result.setId(entity.getId());
         result.setUserName(entity.getUserName());
@@ -180,8 +224,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserInfoResponseDto> toDtoList(List<UserEntity> entityList) {
-        List<UserInfoResponseDto> result =
+    public List<UserInfoDto> toDtoList(List<UserEntity> entityList) {
+        List<UserInfoDto> result =
                 entityList.stream().map(entitity -> toDto(entitity)).collect(Collectors.toList());
         return result;
     }

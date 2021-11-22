@@ -8,12 +8,12 @@ import java.util.Optional;
 
 public interface RoleService extends BaseEntityService<RoleEntity, RoleDto> {
 
-    Optional<List<RoleEntity>> findAllUserRoles(Long userId);
+    List<RoleEntity> findAllUserRoles(Long userId);
 
-    Optional<RoleEntity> findRoleUser();
+    RoleEntity findRoleUser();
 
-    Optional<RoleEntity> findRoleAdmin();
+    RoleEntity findRoleAdmin();
 
-    Optional<RoleEntity> findRoleManager();
+    RoleEntity findRoleManager();
 
 }

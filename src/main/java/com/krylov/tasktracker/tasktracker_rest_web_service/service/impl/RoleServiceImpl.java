@@ -3,6 +3,10 @@ package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.role.RoleDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.RoleEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.UserEntity;
+import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityType;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.DataBaseUpdateException;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.InvalidDtoException;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.NoSuchElementExceptionFactory;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.RoleRepository;
 import com.krylov.tasktracker.tasktracker_rest_web_service.repository.UserRepository;
 import com.krylov.tasktracker.tasktracker_rest_web_service.service.RoleService;
@@ -19,12 +23,15 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final NoSuchElementExceptionFactory noSuchElementExceptionFactory;
 
     @Autowired
     public RoleServiceImpl(RoleRepository roleRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           NoSuchElementExceptionFactory noSuchElementExceptionFactory) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
+        this.noSuchElementExceptionFactory = noSuchElementExceptionFactory;
     }
 
     @Override
@@ -36,50 +43,64 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public Optional<RoleEntity> findById(Long id) {
-        RoleEntity result = roleRepository.findById(id).orElse(null);
-        return Optional.ofNullable(result);
+    public RoleEntity findById(Long id) {
+        RoleEntity result = roleRepository.findById(id)
+                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "id", id));
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<RoleEntity>  findByName(String name) {
+    public RoleEntity  findByName(String name) {
         RoleEntity result = roleRepository.findByName(name);
-        return Optional.ofNullable(result);
+        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", name);
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<List<RoleEntity>> findAllUserRoles(Long userId) {
-        Optional<UserEntity> userEntityOptional = userRepository.findById(userId);
-        if (userEntityOptional.isEmpty()) return Optional.empty();
-        UserEntity userEntity = userEntityOptional.get();
+    public List<RoleEntity> findAllUserRoles(Long userId) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", userId));
         List<RoleEntity> result = userEntity.getRoles();
-        return Optional.ofNullable(result);
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<RoleEntity>  findRoleUser() {
-        return roleRepository.findRoleUser();
+    public RoleEntity findRoleUser() {
+        RoleEntity result = roleRepository.findRoleUser()
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", "ROLE_USER"));
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<RoleEntity>  findRoleAdmin() {
-        return roleRepository.findRoleAdmin();
+    public RoleEntity  findRoleAdmin() {
+        RoleEntity result = roleRepository.findRoleAdmin()
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", "ROLE_ADMIN"));
+        return result;
     }
 
     @Override
     @Transactional
-    public Optional<RoleEntity> findRoleManager() {
-        return roleRepository.findRoleManager();
+    public RoleEntity findRoleManager() {
+        RoleEntity result = roleRepository.findRoleManager()
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", "ROLE_MANAGER"));
+        return result;
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
-        roleRepository.deleteById(id);
+        if (!roleRepository.existsById(id)){
+            throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "id", id);
+        }
+        try{
+            roleRepository.deleteById(id);
+        } catch (Exception e){
+            throw new DataBaseUpdateException("Unable to delete Role with id='" + id + "'");
+        }
     }
 
     @Override
@@ -90,9 +111,11 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public Optional<RoleEntity> toEntity(RoleDto dto) {
-        if (dto == null) return Optional.empty();
-        Optional<RoleEntity> result = roleRepository.findById(dto.getId());
+    public RoleEntity toEntity(RoleDto dto) {
+        if (dto == null) throw new InvalidDtoException("DTO is empty");
+        if (dto.getId() == null) throw new InvalidDtoException("Invalid Role Id");
+        RoleEntity result = roleRepository.findById(dto.getId())
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "id", dto.getId()));
         return result;
     }
 

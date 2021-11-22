@@ -13,12 +13,12 @@ public interface TaskRepository extends JpaRepository<TaskEntity,Long> {
     boolean existsById (Long id);
 
     @Query("FROM TaskEntity WHERE project.id = ?1")
-    List<TaskEntity> findAllByProject(Long projectId);
+    List<TaskEntity> findAllByProjectId(Long projectId);
 
     @Query("FROM TaskEntity WHERE user.id = ?1")
-    List<TaskEntity> findAllByUser(Long userId);
+    List<TaskEntity> findAllByUserId(Long userId);
 
     @Query("FROM TaskEntity WHERE project.id = ?1 and user.id = ?2")
-    List<TaskEntity> findAllByProjectAndUser(Long projectId, Long userId);
+    List<TaskEntity> findAllByProjectIdAndUserId(Long projectId, Long userId);
 
 }

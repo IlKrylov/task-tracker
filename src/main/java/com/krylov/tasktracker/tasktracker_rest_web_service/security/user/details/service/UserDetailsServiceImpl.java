@@ -23,13 +23,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-
-        Optional<UserEntity> userEntityOptional = userService.findByName(userName);
-        if (userEntityOptional.isEmpty()){
+        try{
+            UserEntity userEntity = userService.findByName(userName);
+            UserDetails result = UserDetailsFactory.createUserDetails(userEntity);
+            return result;
+        } catch (Exception e){
             throw new UsernameNotFoundException("User with username: '" + userName + "' not found");
         }
-
-        UserDetails result = UserDetailsFactory.createUserDetails(userEntityOptional.get());
-        return result;
     }
 }

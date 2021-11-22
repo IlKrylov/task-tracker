@@ -7,9 +7,9 @@ public interface BaseEntityService<E, D> {
 
     List<E> getAll();
 
-    Optional<E> findById(Long id);
+    E findById(Long id);
 
-    Optional<E> findByName(String name);
+    E findByName(String name);
 
     void deleteById(Long id);
 
@@ -19,6 +19,6 @@ public interface BaseEntityService<E, D> {
 
     List<D> toDtoList(List<E> entityList);
 
-    Optional<E> toEntity(D dto);
+    E toEntity(D dto);
 
 }

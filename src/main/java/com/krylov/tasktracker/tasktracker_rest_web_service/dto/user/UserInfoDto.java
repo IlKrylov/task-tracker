@@ -3,7 +3,7 @@ package com.krylov.tasktracker.tasktracker_rest_web_service.dto.user;
 import lombok.Data;
 
 @Data
-public class UserInfoResponseDto {
+public class UserInfoDto {
 
     private Long id;
     private String userName;
