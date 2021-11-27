@@ -6,18 +6,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    UserEntity findByUserName(String userName);
+    Optional<UserEntity> findByUserName(String userName);
 
-    boolean existsById (Long id);
+    boolean existsById(Long id);
 
     @Query("select u from UserEntity u join u.projects p where p.id = :projectId")
     List<UserEntity> findAllByProjectId(@Param("projectId") Long projectId);
 
-    boolean existsByUserName (String userName);
+    boolean existsByUserName(String userName);
 
-    boolean existsByEmail (String email);
+    boolean existsByEmail(String email);
 
 }

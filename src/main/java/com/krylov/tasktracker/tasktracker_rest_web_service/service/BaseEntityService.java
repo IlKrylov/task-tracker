@@ -1,7 +1,6 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface BaseEntityService<E, D> {
 

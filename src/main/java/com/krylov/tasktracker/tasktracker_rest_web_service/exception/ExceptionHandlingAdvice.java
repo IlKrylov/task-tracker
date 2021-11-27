@@ -30,4 +30,9 @@ public class ExceptionHandlingAdvice {
         return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity accessDeniedException(AccessDeniedException exception){
+        return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
 }

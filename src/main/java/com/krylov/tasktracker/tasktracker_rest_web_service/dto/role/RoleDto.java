@@ -9,5 +9,5 @@ public class RoleDto {
     Long id;
 
     RoleType name;
-    
+
 }

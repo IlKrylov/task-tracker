@@ -4,7 +4,6 @@ import com.krylov.tasktracker.tasktracker_rest_web_service.dto.project.ProjectDt
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.ProjectEntity;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ProjectService extends BaseEntityService<ProjectEntity, ProjectDto> {
 

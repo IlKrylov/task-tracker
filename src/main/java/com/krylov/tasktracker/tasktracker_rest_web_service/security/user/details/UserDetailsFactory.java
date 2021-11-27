@@ -34,7 +34,7 @@ public final class UserDetailsFactory {
     private static List<GrantedAuthority> mapRolesToGrantedAuthorities(List<RoleEntity> roleEntityList) {
         List<GrantedAuthority> result =
                 roleEntityList.stream()
-                .map(roleEntity -> new SimpleGrantedAuthority(roleEntity.getName().toString())).collect(Collectors.toList());
+                        .map(roleEntity -> new SimpleGrantedAuthority(roleEntity.getName().toString())).collect(Collectors.toList());
         return result;
     }
 

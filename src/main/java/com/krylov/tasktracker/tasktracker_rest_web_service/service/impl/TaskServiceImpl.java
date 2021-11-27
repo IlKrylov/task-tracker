@@ -1,11 +1,13 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.task.TaskDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.task.TaskStatusChangeRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.ProjectEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.TaskEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.UserEntity;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityStatus;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityType;
+import com.krylov.tasktracker.tasktracker_rest_web_service.exception.AccessDeniedException;
 import com.krylov.tasktracker.tasktracker_rest_web_service.exception.DataBaseUpdateException;
 import com.krylov.tasktracker.tasktracker_rest_web_service.exception.InvalidDtoException;
 import com.krylov.tasktracker.tasktracker_rest_web_service.exception.NoSuchElementExceptionFactory;
@@ -46,10 +48,27 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     public TaskEntity saveOrUpdate(TaskDto dto) {
         TaskEntity taskEntity = toEntity(dto);
-        try{
+        try {
             TaskEntity result = taskRepository.save(taskEntity);
             return result;
-        } catch (Exception e){
+        } catch (Exception e) {
+            throw new DataBaseUpdateException("Unable to save Task with name='" + taskEntity.getName() + "'");
+        }
+    }
+
+    @Override
+    @Transactional
+    public TaskEntity checkAccessAndSaveOrUpdateStatus(Long userId, TaskStatusChangeRequestDto dto) {
+        if (dto == null) throw new InvalidDtoException("DTO is empty");
+        if (dto.getId() == null ||
+                dto.getStatus() == null) throw new InvalidDtoException("Invalid DTO data");
+        TaskEntity taskEntity = taskRepository.findByIdAndUserId(dto.getId(), userId).orElseThrow(
+                () -> new AccessDeniedException("User with id='" + userId + "' does not have access to task with id ='" + dto.getId() + "'"));
+        taskEntity.setStatus(dto.getStatus());
+        try {
+            TaskEntity result = taskRepository.save(taskEntity);
+            return result;
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to save Task with name='" + taskEntity.getName() + "'");
         }
     }
@@ -65,15 +84,16 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     public TaskEntity findById(Long id) {
         TaskEntity result = taskRepository.findById(id)
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", id));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", id));
         return result;
     }
 
     @Override
     @Transactional
     public TaskEntity findByName(String name) {
-        TaskEntity result = taskRepository.findByName(name);
-        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "name", name);
+        TaskEntity result = taskRepository.findByName(name).orElseThrow(
+                () -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "name", name)
+        );
         return result;
     }
 
@@ -117,9 +137,9 @@ public class TaskServiceImpl implements TaskService {
         if (!taskRepository.existsById(id)) {
             throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", id);
         }
-        try{
+        try {
             taskRepository.deleteById(id);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to delete Task with id='" + id + "'");
         }
     }
@@ -135,12 +155,12 @@ public class TaskServiceImpl implements TaskService {
     public TaskEntity toEntity(TaskDto dto) {
         if (dto == null) throw new InvalidDtoException("DTO is empty");
         if (dto.getProjectId() == null ||
-            dto.getName() == null ||
-            dto.getDescription() == null ||
-            dto.getEntityStatus() == null) throw new InvalidDtoException("Invalid DTO data");
+                dto.getName() == null ||
+                dto.getDescription() == null ||
+                dto.getEntityStatus() == null) throw new InvalidDtoException("Invalid DTO data");
 
         ProjectEntity projectEntity = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", dto.getProjectId()));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", dto.getProjectId()));
 
         TaskEntity result = null;
         if (dto.getId() == null) {
@@ -150,15 +170,15 @@ public class TaskServiceImpl implements TaskService {
         } else {
             Optional<TaskEntity> taskEntityOptional = taskRepository.findById(dto.getId());
             result = taskEntityOptional
-                    .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", dto.getId()));
+                    .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.TASK, "id", dto.getId()));
         }
         result.setName(dto.getName());
         result.setDescription(dto.getDescription());
         result.setProject(projectEntity);
 
-        if (dto.getUserId() != null){
+        if (dto.getUserId() != null) {
             UserEntity userEntity = userRepository.findById(dto.getUserId())
-                    .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", dto.getUserId()));
+                    .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", dto.getUserId()));
             result.setUser(userEntity);
         }
 

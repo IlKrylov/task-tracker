@@ -15,7 +15,4 @@ public interface UserService extends BaseEntityService<UserEntity, UserInfoDto> 
 
     List<UserEntity> findAllProjectUsers(Long projectId);
 
-    boolean existsByUserName(String userName);
-
-    boolean existsByEmail(String email);
 }

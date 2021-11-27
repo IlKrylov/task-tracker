@@ -41,10 +41,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectEntity saveOrUpdate(ProjectDto dto) {
         ProjectEntity projectEntity = toEntity(dto);
-        try{
+        try {
             ProjectEntity result = projectRepository.save(projectEntity);
             return result;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to save Project with name='" + projectEntity.getName() + "'");
         }
     }
@@ -60,22 +60,22 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectEntity findById(Long id) {
         ProjectEntity result = projectRepository.findById(id)
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", id));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", id));
         return result;
     }
 
     @Override
     @Transactional
     public ProjectEntity findByName(String name) {
-        ProjectEntity result = projectRepository.findByName(name);
-        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "name", name);
+        ProjectEntity result = projectRepository.findByName(name).orElseThrow(
+                () -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "name", name));
         return result;
     }
 
     @Override
     @Transactional
     public List<ProjectEntity> findAllUserProjects(Long userId) {
-        if (!userRepository.existsById(userId)){
+        if (!userRepository.existsById(userId)) {
             throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", userId);
         }
         List<ProjectEntity> result = projectRepository.findAllByUserId(userId);
@@ -86,18 +86,18 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void deleteById(Long id) {
         ProjectEntity projectEntity = projectRepository.findById(id)
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", id));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", id));
 
-        if (projectEntity.getUsers() !=null){
+        if (projectEntity.getUsers() != null) {
             projectEntity.getUsers().stream().forEach(userEntity -> userEntity.removeProject(projectEntity, new ArrayList<>()));
         }
         if (projectEntity.getTasks() != null) {
             projectEntity.getTasks().stream().forEach(taskEntity -> taskRepository.deleteById(taskEntity.getId()));
         }
 
-        try{
+        try {
             projectRepository.deleteById(id);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to delete Project with id='" + id + "'");
         }
     }
@@ -122,7 +122,7 @@ public class ProjectServiceImpl implements ProjectService {
         } else {
             Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(dto.getId());
             result = projectEntityOptional.orElseThrow(
-                    ()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", dto.getId()));
+                    () -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.PROJECT, "id", dto.getId()));
         }
         result.setName(dto.getName());
         result.setDescription(dto.getDescription());

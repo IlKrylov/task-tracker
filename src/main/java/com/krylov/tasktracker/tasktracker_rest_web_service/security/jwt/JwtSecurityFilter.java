@@ -27,13 +27,13 @@ public class JwtSecurityFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        try{
+        try {
             String token = jwtService.resolveToken((HttpServletRequest) servletRequest);
             if (jwtService.isValidToken(token)) {
                 Authentication authentication = jwtService.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (JwtException e){
+        } catch (JwtException e) {
 
         }
         filterChain.doFilter(servletRequest, servletResponse);

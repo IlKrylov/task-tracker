@@ -91,7 +91,7 @@ public class JwtServiceImpl implements JwtService {
             String userName = Jwts.parser().setSigningKey(secretSigningKey).parseClaimsJws(token).getBody().getSubject();
             UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
             return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new JwtException("Unable to get authentication based on JWT");
         }
     }

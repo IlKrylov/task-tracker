@@ -58,15 +58,15 @@ public class UserServiceImpl implements UserService {
                 userRegistrationRequestDto.getPassword() == null ||
                 userRegistrationRequestDto.getEmail() == null ||
                 userRegistrationRequestDto.getFirstName() == null ||
-                userRegistrationRequestDto.getLastName() == null){
+                userRegistrationRequestDto.getLastName() == null) {
             throw new InvalidDtoException("Invalid DTO data");
         }
 
-        if (userRepository.existsByUserName(userRegistrationRequestDto.getUserName())){
-            throw new DataBaseUpdateException("User with username='"+ userRegistrationRequestDto.getUserName() + "' already exists");
+        if (userRepository.existsByUserName(userRegistrationRequestDto.getUserName())) {
+            throw new DataBaseUpdateException("User with username='" + userRegistrationRequestDto.getUserName() + "' already exists");
         }
-        if (userRepository.existsByEmail(userRegistrationRequestDto.getEmail())){
-            throw new DataBaseUpdateException("User with email='"+ userRegistrationRequestDto.getEmail() + "' already exists");
+        if (userRepository.existsByEmail(userRegistrationRequestDto.getEmail())) {
+            throw new DataBaseUpdateException("User with email='" + userRegistrationRequestDto.getEmail() + "' already exists");
         }
 
         UserEntity userEntity = new UserEntity();
@@ -88,10 +88,10 @@ public class UserServiceImpl implements UserService {
         userEntity.setCreated(new Date());
         userEntity.setUpdated(new Date());
 
-        try{
+        try {
             UserEntity result = userRepository.save(userEntity);
             return result;
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to save User with username='" + userRegistrationRequestDto.getUserName() + "'");
         }
     }
@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
         if (updateRequestDto.getId() == null) throw new InvalidDtoException("Invalid user Id");
 
         UserEntity userEntity = userRepository.findById(updateRequestDto.getId())
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", updateRequestDto.getId()));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", updateRequestDto.getId()));
 
         List<String> result = new ArrayList<>();
         addChanges(EntityType.ROLE, roleRepository, updateRequestDto.getRoleChanges(), userEntity, result);
@@ -124,15 +124,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserEntity findById(Long id) {
         UserEntity result = userRepository.findById(id)
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", id));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", id));
         return result;
     }
 
     @Override
     @Transactional
     public UserEntity findByName(String userName) {
-        UserEntity result = userRepository.findByUserName(userName);
-        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "name", userName);
+        UserEntity result = userRepository.findByUserName(userName).orElseThrow(
+                () -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "name", userName));
         return result;
     }
 
@@ -150,21 +150,21 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteById(Long id) {
         UserEntity userEntity = userRepository.findById(id)
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", id));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", id));
 
-        if (userEntity.getProjects() != null){
+        if (userEntity.getProjects() != null) {
             List<ProjectEntity> projectEntities = userEntity.getProjects();
             projectEntities.stream().forEach(projectEntity -> projectEntity.removeUser(userEntity));
         }
 
-        if (userEntity.getTasks() !=null){
+        if (userEntity.getTasks() != null) {
             List<TaskEntity> taskEntities = userEntity.getTasks();
             taskEntities.forEach(taskEntity -> taskEntity.setUser(null));
         }
 
-        try{
+        try {
             userRepository.deleteById(id);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to delete User with id='" + id + "'");
         }
     }
@@ -173,18 +173,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean existsById(Long id) {
         return userRepository.existsById(id);
-    }
-
-    @Override
-    @Transactional
-    public boolean existsByUserName(String userName) {
-        return userRepository.existsByUserName(userName);
-    }
-
-    @Override
-    @Transactional
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
     }
 
     @Override
@@ -200,7 +188,7 @@ public class UserServiceImpl implements UserService {
         } else {
             Optional<UserEntity> userEntityOptional = userRepository.findById(dto.getId());
             result = userEntityOptional.orElseThrow(
-                    ()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", dto.getId()));
+                    () -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.USER, "id", dto.getId()));
         }
         result.setUserName(dto.getUserName());
         result.setFirsName(dto.getFirstName());
@@ -243,8 +231,8 @@ public class UserServiceImpl implements UserService {
             BaseEntity entity = entityOptional.get();
             ChangeType changeType = changesEntry.getValue();
 
-            switch (entityType){
-                case ROLE:{
+            switch (entityType) {
+                case ROLE: {
                     if (changeType == ChangeType.ADD) {
                         userEntity.addRole((RoleEntity) entity, changeLog);
                     }
@@ -253,7 +241,7 @@ public class UserServiceImpl implements UserService {
                     }
                     break;
                 }
-                case PROJECT:{
+                case PROJECT: {
                     if (changeType == ChangeType.ADD) {
                         userEntity.addProject((ProjectEntity) entity, changeLog);
                     }
@@ -262,7 +250,7 @@ public class UserServiceImpl implements UserService {
                     }
                     break;
                 }
-                case TASK:{
+                case TASK: {
                     if (changeType == ChangeType.ADD) {
                         userEntity.addTask((TaskEntity) entity, changeLog);
                     }

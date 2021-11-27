@@ -5,12 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface TaskRepository extends JpaRepository<TaskEntity,Long> {
+public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
-    TaskEntity findByName(String name);
+    Optional<TaskEntity> findByName(String name);
 
-    boolean existsById (Long id);
+    boolean existsById(Long id);
 
     @Query("FROM TaskEntity WHERE project.id = ?1")
     List<TaskEntity> findAllByProjectId(Long projectId);
@@ -20,5 +21,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity,Long> {
 
     @Query("FROM TaskEntity WHERE project.id = ?1 and user.id = ?2")
     List<TaskEntity> findAllByProjectIdAndUserId(Long projectId, Long userId);
+
+    @Query("FROM TaskEntity WHERE id = ?1 and user.id = ?2")
+    Optional<TaskEntity> findByIdAndUserId(Long taskId, Long userId);
 
 }

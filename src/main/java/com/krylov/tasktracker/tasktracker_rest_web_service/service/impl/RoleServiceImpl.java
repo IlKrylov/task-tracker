@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,15 +44,15 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public RoleEntity findById(Long id) {
         RoleEntity result = roleRepository.findById(id)
-                .orElseThrow(()-> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "id", id));
+                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "id", id));
         return result;
     }
 
     @Override
     @Transactional
-    public RoleEntity  findByName(String name) {
-        RoleEntity result = roleRepository.findByName(name);
-        if (result == null) throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", name);
+    public RoleEntity findByName(String name) {
+        RoleEntity result = roleRepository.findByName(name).orElseThrow(
+                () -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", name));
         return result;
     }
 
@@ -68,37 +67,13 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public RoleEntity findRoleUser() {
-        RoleEntity result = roleRepository.findRoleUser()
-                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", "ROLE_USER"));
-        return result;
-    }
-
-    @Override
-    @Transactional
-    public RoleEntity  findRoleAdmin() {
-        RoleEntity result = roleRepository.findRoleAdmin()
-                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", "ROLE_ADMIN"));
-        return result;
-    }
-
-    @Override
-    @Transactional
-    public RoleEntity findRoleManager() {
-        RoleEntity result = roleRepository.findRoleManager()
-                .orElseThrow(() -> noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "name", "ROLE_MANAGER"));
-        return result;
-    }
-
-    @Override
-    @Transactional
     public void deleteById(Long id) {
-        if (!roleRepository.existsById(id)){
+        if (!roleRepository.existsById(id)) {
             throw noSuchElementExceptionFactory.getNoSuchElementException(EntityType.ROLE, "id", id);
         }
-        try{
+        try {
             roleRepository.deleteById(id);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataBaseUpdateException("Unable to delete Role with id='" + id + "'");
         }
     }
