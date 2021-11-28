@@ -22,6 +22,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final JwtSecurityConfigureAdapter jwtSecurityConfigureAdapter;
 
+    private static final String[] SWAGGER_ENDPOINTS = {
+            // -- Swagger UI v2
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            // -- Swagger UI v3 (OpenAPI)
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+    };
+
     @Autowired
     public SecurityConfiguration(JwtSecurityConfigureAdapter jwtSecurityConfigureAdapter) {
         this.jwtSecurityConfigureAdapter = jwtSecurityConfigureAdapter;
@@ -37,27 +51,27 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity
-
 //                .formLogin()
 //                .and()
 //                .logout()
 //                .and()
 //                .httpBasic()
 //                .and()
-
                 .httpBasic().disable()
                 .csrf().disable()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
+                .antMatchers(SWAGGER_ENDPOINTS).permitAll()
                 .antMatchers(REGISTRATION_ENDPOINT).permitAll()
                 .antMatchers(AUTHENTICATION_ENDPOINT).permitAll()
                 .antMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
                 .antMatchers(USER_ENDPOINTS).hasRole("USER")
                 .antMatchers(MANAGER_ENDPOINTS).hasRole("MANAGER")
-                .anyRequest().authenticated()
+                .antMatchers("/**").authenticated()
                 .and()
                 .apply(jwtSecurityConfigureAdapter);
     }
 }
+

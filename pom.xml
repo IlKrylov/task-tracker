@@ -16,6 +16,7 @@
     <properties>
         <java.version>11</java.version>
         <jsonwebtoken.version>0.8.0</jsonwebtoken.version>
+        <swagger.version>2.9.2</swagger.version>
     </properties>
     <dependencies>
         <dependency>
@@ -56,9 +57,17 @@
             <artifactId>jjwt</artifactId>
             <version>${jsonwebtoken.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2 </artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
     </dependencies>
-
-
     <build>
         <plugins>
             <plugin>
@@ -75,5 +84,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
