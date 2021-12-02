@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserEntity register(UserRegistrationRequestDto userRegistrationRequestDto) {
-
+        if (userRegistrationRequestDto == null) throw new InvalidDtoException("DTO is empty");
         if (userRegistrationRequestDto.getUserName() == null ||
                 userRegistrationRequestDto.getPassword() == null ||
                 userRegistrationRequestDto.getEmail() == null ||
@@ -194,6 +194,9 @@ public class UserServiceImpl implements UserService {
         result.setFirsName(dto.getFirstName());
         result.setLastName(dto.getLastName());
         result.setEmail(dto.getEmail());
+
+        result.setStatus(EntityStatus.ACTIVE);
+        result.setUpdated(new Date());
 
         return result;
     }
