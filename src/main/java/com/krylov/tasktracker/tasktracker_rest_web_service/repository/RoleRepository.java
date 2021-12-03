@@ -12,12 +12,12 @@ public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
 
     boolean existsById(Long id);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM roles s WHERE s.name = 'ROLE_ADMIN' LIMIT 1")
+    @Query("SELECT r FROM RoleEntity r WHERE r.name = 'ROLE_ADMIN'")
     Optional<RoleEntity> findRoleAdmin();
 
-    @Query(nativeQuery = true, value = "SELECT * FROM roles s WHERE s.name = 'ROLE_USER' LIMIT 1")
+    @Query("SELECT r FROM RoleEntity r WHERE r.name = 'ROLE_USER'")
     Optional<RoleEntity> findRoleUser();
 
-    @Query(nativeQuery = true, value = "SELECT * FROM roles s WHERE s.name = 'ROLE_MANAGER' LIMIT 1")
+    @Query("SELECT r FROM RoleEntity r WHERE r.name = 'ROLE_MANAGER'")
     Optional<RoleEntity> findRoleManager();
 }
