@@ -1,8 +1,8 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.service.impl;
 
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserInfoDto;
-import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserRegistrationRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserLinksUpdateRequestDto;
+import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.UserRegistrationRequestDto;
 import com.krylov.tasktracker.tasktracker_rest_web_service.dto.user.enums.ChangeType;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.*;
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityStatus;

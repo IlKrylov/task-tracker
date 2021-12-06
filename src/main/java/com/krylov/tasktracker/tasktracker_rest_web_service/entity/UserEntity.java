@@ -1,6 +1,7 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.entity;
 
 import com.krylov.tasktracker.tasktracker_rest_web_service.entity.enums.EntityType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,21 +16,22 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity extends BaseEntity {
 
-    @Column(name = "user_name")
+    @Column(name = "user_name", unique = true, nullable = false)
     private String userName;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name", nullable = false)
     private String firsName;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)

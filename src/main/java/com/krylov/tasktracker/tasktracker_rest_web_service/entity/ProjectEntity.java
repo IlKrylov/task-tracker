@@ -1,5 +1,6 @@
 package com.krylov.tasktracker.tasktracker_rest_web_service.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,12 +14,13 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ProjectEntity extends BaseEntity {
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", nullable = false)
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "projects")

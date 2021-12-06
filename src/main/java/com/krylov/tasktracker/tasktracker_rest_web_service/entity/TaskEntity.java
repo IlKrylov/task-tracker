@@ -13,10 +13,10 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class TaskEntity extends BaseEntity {
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", nullable = false)
     private String description;
 
     @ManyToOne
@@ -24,7 +24,7 @@ public class TaskEntity extends BaseEntity {
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private ProjectEntity project;
 
 }

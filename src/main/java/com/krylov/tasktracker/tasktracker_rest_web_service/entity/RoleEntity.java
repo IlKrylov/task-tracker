@@ -16,7 +16,7 @@ import java.util.List;
 public class RoleEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false)
     private RoleType name;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "roles")

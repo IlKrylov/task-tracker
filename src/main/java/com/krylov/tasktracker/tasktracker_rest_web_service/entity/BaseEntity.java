@@ -16,19 +16,19 @@ public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Long id;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     private Date created;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated")
+    @Column(name = "updated", nullable = false)
     private Date updated;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private EntityStatus status;
 
 }

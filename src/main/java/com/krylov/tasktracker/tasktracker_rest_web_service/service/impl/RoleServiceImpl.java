@@ -108,4 +108,5 @@ public class RoleServiceImpl implements RoleService {
                 entityList.stream().map(roleEntity -> toDto(roleEntity)).collect(Collectors.toList());
         return result;
     }
+
 }
