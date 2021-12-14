@@ -1,3 +1,9 @@
+DELETE FROM users_projects;
+DELETE FROM users_roles WHERE user_id NOT IN ( 1 );
+DELETE FROM tasks;
+DELETE FROM projects;
+DELETE FROM users WHERE id NOT IN ( 1 );
+
 INSERT INTO projects (id, created, updated, status, name, description) VALUES
 (1,'2021-10-26 13:53:48','2021-10-26 13:53:48','ACTIVE','Project1','TestProject1'),
 (2,'2021-10-26 13:53:48','2021-10-26 13:53:48','ACTIVE','Project2','TestProject2'),
@@ -16,6 +22,8 @@ INSERT INTO users_projects (user_id, project_id) VALUES
 (2,1), (2,2), (2,3), (2,4),(2,5),
 (3,1);
 
+INSERT INTO users_roles (user_id, role_id) VALUES
+(2,2), (3,2), (4,2);
 
 
 INSERT INTO tasks (id, created, updated, status, name, description, user_id, project_id) VALUES

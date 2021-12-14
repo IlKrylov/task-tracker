@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -16,14 +17,15 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-class TaskRepositoryTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional
+public class TaskRepositoryTest {
 
     @Autowired
     private TaskRepository taskRepository;
 
     @BeforeAll
-    static void setUp(@Autowired DataSource dataSource) {
+    private static void setUp(@Autowired DataSource dataSource) {
         try (Connection connection = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection, new ClassPathResource("test-data.sql"));
         } catch (Exception e) {
@@ -31,18 +33,18 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void contextLoads() {
+    public void contextLoads() {
         assertThat(taskRepository).isNotNull();
     }
 
     @Test
-    void count() {
+    public void count() {
         Long actual = taskRepository.count();
         assertThat(actual).isEqualTo(21L);
     }
 
     @Test
-    void findByName() {
+    public void findByName() {
         Optional<TaskEntity> optionalActual1 = taskRepository.findByName("Task1");
         assertThat(optionalActual1).isPresent();
         assertThat(optionalActual1.get().getId()).isEqualTo(1L);
@@ -61,7 +63,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void existsById() {
+    public void existsById() {
         boolean actual1 = taskRepository.existsById(1l);
         assertThat(actual1).isEqualTo(true);
 
@@ -82,7 +84,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void findAllByProjectId() {
+    public void findAllByProjectId() {
         //Project1
         List<TaskEntity> actual1 = taskRepository.findAllByProjectId(1l);
         assertThat(actual1.size()).isEqualTo(2);
@@ -105,7 +107,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void findAllByUserId() {
+    public void findAllByUserId() {
         //User1
         List<TaskEntity> actual1 = taskRepository.findAllByUserId(1l);
         assertThat(actual1.size()).isEqualTo(6);
@@ -124,7 +126,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void findAllByProjectIdAndUserId() {
+    public void findAllByProjectIdAndUserId() {
         //User1
         List<TaskEntity> actual1_1 = taskRepository.findAllByProjectIdAndUserId(1l, 1l);
         assertThat(actual1_1.size()).isEqualTo(1);
@@ -155,7 +157,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void findByIdAndUserId() {
+    public void findByIdAndUserId() {
         //User1
         Optional<TaskEntity> optionalActual1_1 = taskRepository.findByIdAndUserId(1l, 1l);
         assertThat(optionalActual1_1).isPresent();

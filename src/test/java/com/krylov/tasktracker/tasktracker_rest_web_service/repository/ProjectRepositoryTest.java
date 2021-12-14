@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -17,33 +17,34 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-class ProjectRepositoryTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional
+public class ProjectRepositoryTest {
 
     @Autowired
     private ProjectRepository projectRepository;
 
     @BeforeAll
-    static void setUp(@Autowired DataSource dataSource) {
+    private static void setUp(@Autowired DataSource dataSource) {
         try (Connection connection = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection, new ClassPathResource("test-data.sql"));
-        } catch (Exception e){
+        } catch (Exception e) {
         }
     }
 
     @Test
-    void contextLoads() {
+    public void contextLoads() {
         assertThat(projectRepository).isNotNull();
     }
 
     @Test
-    void count() {
+    public void count() {
         Long actual = projectRepository.count();
         assertThat(actual).isEqualTo(5L);
     }
 
     @Test
-    void findByName() {
+    public void findByName() {
         Optional<ProjectEntity> optionalActual1 = projectRepository.findByName("Project1");
         assertThat(optionalActual1).isPresent();
         assertThat(optionalActual1.get().getId()).isEqualTo(1L);
@@ -68,7 +69,7 @@ class ProjectRepositoryTest {
     }
 
     @Test
-    void existsById() {
+    public void existsById() {
         boolean actual1 = projectRepository.existsById(1l);
         assertThat(actual1).isEqualTo(true);
 
@@ -89,7 +90,7 @@ class ProjectRepositoryTest {
     }
 
     @Test
-    void findAllByUserId() {
+    public void findAllByUserId() {
         List<ProjectEntity> actualProjects1 = projectRepository.findAllByUserId(1l);
         assertThat(actualProjects1.size()).isEqualTo(3);
 
