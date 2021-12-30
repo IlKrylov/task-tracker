@@ -34,8 +34,5 @@ public class AuthenticationRestController {
 
         JwtDto result = jwtService.authenticateAndCreateToken(authenticationManager, userName, password);
         return new ResponseEntity(result, HttpStatus.OK);
-
     }
-
-
 }

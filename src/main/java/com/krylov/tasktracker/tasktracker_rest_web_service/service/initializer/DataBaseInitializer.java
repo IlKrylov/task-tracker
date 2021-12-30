@@ -60,7 +60,8 @@ public class DataBaseInitializer {
     private void initRootAdmin() {
         try {
             UserEntity userEntity = new UserEntity("ADMIN", "ADMIN", "ADMIN", "ADMIN",
-                    passwordEncoder.encode(rootAdminPassword), List.of(roleRepository.findRoleAdmin().get()), null, null);
+                    passwordEncoder.encode(rootAdminPassword), List.of(roleRepository.findRoleAdmin().get(), roleRepository.findRoleUser().get()),
+                    null, null);
             userEntity.setCreated(new Date());
             userEntity.setUpdated(new Date());
             userEntity.setStatus(EntityStatus.ACTIVE);
